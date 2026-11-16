@@ -1,0 +1,13 @@
+-- Create the dogs table.
+CREATE TABLE Dogs (
+    Id INTEGER PRIMARY KEY,
+    Name TEXT,
+    Breed TEXT,
+    Year INTEGER,
+    ImageFileName TEXT
+);
+
+-- Add contest winners.
+INSERT INTO Dogs (Name, Breed, Year, ImageFileName) VALUES
+('Zsa Zsa', 'English Bulldog', 2018, 'zsa_zsa.jpg'),
+('Scamp the Tramp', 'Mixed', 2019, 'scamp.jpg');

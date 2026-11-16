@@ -1,12 +1,87 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 
-namespace MyApp.Namespace
+public class UgliestDogsModel : PageModel
 {
-    public class UgliestDogsModel : PageModel
+    public List<SelectListItem> DogList { get; set; } = new List<SelectListItem>();
+    public Dog? SelectedDog { get; set; }
+
+    // Load the dropdown.
+    public void OnGet()
     {
-        public void OnGet()
+        LoadDogList();
+    }
+
+    // Get the selected dog.
+    public void OnPost(string selectedDog)
+    {
+        LoadDogList();
+        if (!string.IsNullOrEmpty(selectedDog))
         {
+            SelectedDog = GetDogById(int.Parse(selectedDog));
         }
     }
+
+    // Read dog names and IDs.
+    private void LoadDogList()
+    {
+        DogList = new List<SelectListItem>();
+        using (var connection = new SqliteConnection("Data Source=UgliestDogs.db"))
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT Id, Name FROM Dogs";
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    DogList.Add(new SelectListItem
+                    {
+                        Value = reader.GetInt32(0).ToString(),
+                        Text = reader.GetString(1)
+                    });
+                }
+            }
+        }
+    }
+
+    // Read the dog's details.
+    private Dog? GetDogById(int id)
+    {
+        using (var connection = new SqliteConnection("Data Source=UgliestDogs.db"))
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM Dogs WHERE Id = @Id";
+            command.Parameters.AddWithValue("@Id", id);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new Dog
+                    {
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Breed = reader.GetString(2),
+                        Year = reader.GetInt32(3),
+                        ImageFileName = reader.GetString(4)
+                    };
+                }
+            }
+        }
+        return null;
+    }
+}
+
+// Store a dog's information.
+public class Dog
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Breed { get; set; } = "";
+    public int Year { get; set; }
+    public string ImageFileName { get; set; } = "";
 }
